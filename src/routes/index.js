@@ -4,6 +4,7 @@ const roleRouter = require('./role.router');
 const profileRouter = require('./profile.router');
 const authRouter = require('./auth.router');
 const tokenRouter = require('./black_token.router');
+const medicRouter = require('./medic.router');
 
 function routerApi(app) {
   const router = express.Router();
@@ -14,6 +15,7 @@ function routerApi(app) {
   router.use('/profile', profileRouter);
   router.use('/auth', authRouter);
   router.use('/token', tokenRouter);
+  router.use('/medic', medicRouter);
 }
 
 module.exports = routerApi;

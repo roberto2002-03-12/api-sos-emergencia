@@ -74,6 +74,11 @@ class Profile extends Model {
       as: 'user',
       foreignKey: 'user_id',
     });
+
+    this.hasOne(model.Medic, {
+      as: 'medic',
+      foreignKey: 'profile_id',
+    });
   }
 
   static config(sequelize) {

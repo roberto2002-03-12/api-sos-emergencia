@@ -117,7 +117,7 @@ const createProfile = async (obj) => {
     const finalData = {
       ...obj,
       user: {
-        email: obj.user.email,
+        ...obj.user,
         password: hash,
         activated: 1,
         loggedToken: 'not authenticated yet',
