@@ -9,7 +9,6 @@ const {
 } = require('../schemas/auth.schema');
 const { createProfile } = require('../services/profile.service');
 const { signToken, sendRecovery, changePassword } = require('../services/auth.service');
-const { getName } = require('../helpers/getNameFromUrl');
 
 const router = express.Router();
 
@@ -21,7 +20,6 @@ router.post(
     try {
       // req.user it's only aviable with an auth middleware.
       const result = await signToken(req.user);
-      console.log(req.user);
       res.status(200).json(result);
     } catch (err) {
       next(err);
@@ -68,10 +66,8 @@ router.post(
       const resultVal = validationRegisterHandler(registerSchema, objToJson);
 
       if (resultVal === true) {
-        const file = req.file?.location || 'empty';
-        const fileName = getName(file);
-        objToJson.photoName = fileName;
-        objToJson.photoUrl = file;
+        objToJson.photoName = req.file?.key || 'empty';
+        objToJson.photoUrl = req.file?.location || 'empty';
         const newUser = await createProfile(objToJson);
         res.status(201).json(newUser);
       } else {

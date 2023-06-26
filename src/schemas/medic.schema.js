@@ -16,13 +16,14 @@ const sex = Joi.string().max(15);
 const address = Joi.string().max(85);
 
 const description = Joi.string().max(1000);
+// eslint-disable-next-line camelcase
 const certification_code = Joi.string().max(255);
 const photoUrlCertification = Joi.string();
 const photoCertification = Joi.string();
 const specialityId = Joi.string().uuid();
 const universityId = Joi.string().uuid();
 
-const registerAsMedic = Joi.object({
+const registerAsMedicSchema = Joi.object({
   firstName: firstName.required(),
   lastName: lastName.required(),
   dni: dni.required(),
@@ -38,14 +39,15 @@ const registerAsMedic = Joi.object({
   }),
   medic: Joi.object({
     description: description.required(),
+    // eslint-disable-next-line camelcase
     certification_code: certification_code.required(),
-    photoUrlCertification: photoUrlCertification.required(),
-    photoCertification: photoCertification.required(),
+    photoUrlCertification: photoUrlCertification.optional(),
+    photoCertification: photoCertification.optional(),
     specialityId: specialityId.optional(),
     universityId: universityId.optional(),
   }),
 });
 
 module.exports = {
-  registerAsMedic
-}
+  registerAsMedicSchema,
+};

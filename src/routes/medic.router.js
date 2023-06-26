@@ -3,8 +3,10 @@ const passport = require('passport');
 const boom = require('@hapi/boom');
 const fileUpload = require('../middlewares/fileUpload.handler');
 const validationRegisterHandler = require('../helpers/validationRegister');
+const { registerAsMedicSchema } = require('../schemas/medic.schema');
 const { createMedic, checkMedicStatus } = require('../services/medic.service');
-const { getName } = require('../helpers/getNameFromUrl');
+const { checkRole } = require('../middlewares/auth.handler');
+const checkTokenBlack = require('../middlewares/token-valid.handler');
 
 const router = express.Router();
 
@@ -19,30 +21,26 @@ router.post(
       {
         name: 'certification',
         maxCount: 1,
-      }
-    ]
+      },
+    ],
   ),
   async (req, res, next) => {
     try {
       let objToJson = JSON.stringify(req.body);
       objToJson = JSON.parse(objToJson);
 
-      const resultVal = validationRegisterHandler(registerSchema, objToJson);
-
+      const resultVal = validationRegisterHandler(registerAsMedicSchema, objToJson);
       if (resultVal === true) {
-        // const file = req.file?.location || 'empty';
-        // const fileName = getName(file);
-        // objToJson.photoName = fileName;
-        // objToJson.photoUrl = file;
-        // const newUser = await createProfile(objToJson);
-        // res.status(201).json(newUser);
-        const photoName = req.files['photo'];
-        console.log(photoName);
+        objToJson.photoName = req.files.photo[0]?.key || 'empty';
+        objToJson.photoUrl = req.files.photo[0]?.location || 'empty';
+        objToJson.medic.photoUrlCertification = req.files.certification[0]?.location || 'empty';
+        objToJson.medic.photoCertification = req.files.certification[0]?.key || 'empty';
+
+        const result = await createMedic(objToJson);
+        res.status(201).json(result);
       } else {
         throw boom.badRequest(resultVal);
       }
-      // const result = await createMedic(req.body);
-      // res.status(201).json(result);
     } catch (err) {
       next(err);
     }
@@ -51,6 +49,9 @@ router.post(
 
 router.get(
   '/pending-medics',
+  passport.authenticate('jwt', { session: false }),
+  checkRole('admin'),
+  checkTokenBlack(),
   async (req, res, next) => {
     try {
       const result = await checkMedicStatus();

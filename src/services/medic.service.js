@@ -1,29 +1,43 @@
-require('dotenv').config();
 const boom = require('@hapi/boom');
 const bcrypt = require('bcrypt');
 const Sequelize = require('sequelize');
 const { Op } = require('sequelize');
 const { models } = require('../libs/sequelize');
-const { awsS3Client } = require('../config/configS3');
 const sequelize = require('../libs/sequelize');
 const { getUserByEmail } = require('./user.service');
+const { deleteObjectsFromAWS } = require('../helpers/deleteAWSObjects');
 
 const checkMedicStatus = async (query) => {
+  const {
+    offset, limit, dateStart, dateEnd, asc,
+  } = query || {};
+
   const options = {
     include: [
       {
         model: models.Profile,
         as: 'profile',
         where: {},
+        attributes: {
+          exclude: ['userId', 'user_id'],
+        },
         include: [
           {
             model: models.User,
             as: 'user',
-            where: {},
+            where: {
+              activated: false,
+            },
+            attributes: {
+              exclude: ['password', 'recoveryToken', 'loggedToken'],
+            },
           },
         ],
       },
     ],
+    attributes: {
+      exclude: ['profileId', 'profile_id', 'speciality_id', 'university_id'],
+    },
   };
 
   const listMedics = await models.Medic.findAll(options);
@@ -35,7 +49,10 @@ const createMedic = async (obj) => {
   let transaction;
 
   try {
+    if (obj.medic.photoUrlCertification === 'empty') throw boom.badRequest('Certification is required');
+
     transaction = await sequelize.transaction();
+
     const user = await getUserByEmail(obj.user.email);
 
     if (user !== null) throw boom.unauthorized('Email has been registered');
@@ -65,18 +82,10 @@ const createMedic = async (obj) => {
 
     return profile;
   } catch (err) {
-    if (transaction) await transaction.rollBack();
-    if (obj.photoName !== 'empty') {
-      try {
-        await awsS3Client.deleteObject({
-          Bucket: process.env.AWS_BUCKET_NAME,
-          Key: obj.photoName,
-        });
-      } catch (errS3) {
-        console.log(errS3);
-      }
+    if (transaction) await transaction.rollback();
+    if (obj.photoName !== 'empty' && obj.medic.photoCertification !== 'empty') {
+      await deleteObjectsFromAWS([obj.photoName, obj.medic.photoCertification]);
     }
-    // ToDo delete certification
     throw err;
   }
 };
