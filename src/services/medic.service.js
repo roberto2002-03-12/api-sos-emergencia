@@ -7,11 +7,7 @@ const sequelize = require('../libs/sequelize');
 const { getUserByEmail } = require('./user.service');
 const { deleteObjectsFromAWS } = require('../helpers/deleteAWSObjects');
 
-const checkMedicStatus = async (query) => {
-  const {
-    offset, limit, dateStart, dateEnd, asc,
-  } = query || {};
-
+const checkMedicStatus = async (query, active) => {
   const options = {
     include: [
       {
@@ -26,7 +22,7 @@ const checkMedicStatus = async (query) => {
             model: models.User,
             as: 'user',
             where: {
-              activated: false,
+              activated: active,
             },
             attributes: {
               exclude: ['password', 'recoveryToken', 'loggedToken'],
@@ -34,11 +30,75 @@ const checkMedicStatus = async (query) => {
           },
         ],
       },
+      'speciality',
+      'university',
     ],
     attributes: {
-      exclude: ['profileId', 'profile_id', 'speciality_id', 'university_id'],
+      exclude: ['profileId', 'profile_id', 'speciality_id', 'university_id', 'specialityId', 'universityId'],
     },
+    where: {},
+    offset: 0,
+    limit: 20,
   };
+
+  const {
+    offset, limit, dateStart, dateEnd, order,
+    fullName, email, speciality, university,
+  } = query || {};
+
+  if (offset) options.offset = parseInt(offset, 10);
+  if (limit) options.limit = parseInt(limit, 10);
+
+  if (fullName) {
+    options.include[0].where = Sequelize.where(
+      Sequelize.fn('concat', Sequelize.col('first_name'), ' ', Sequelize.col('last_name')),
+      {
+        [Op.like]: `%${fullName}%`,
+      },
+    );
+  }
+
+  if (email) {
+    options.include[0].include[0].where = Sequelize.and(
+      options.include[0].include[0].where,
+      {
+        email: {
+          [Op.like]: `%${email}%`,
+        },
+      },
+    );
+  }
+
+  if (order) {
+    options.order = [
+      [
+        'createdAt',
+        order === 'asc' ? 'ASC' : 'DESC',
+      ],
+    ];
+  }
+
+  if (dateStart && dateEnd) {
+    options.where.createdAt = {
+      [Op.between]: [dateStart, dateEnd],
+    };
+  }
+
+  if (dateStart && !dateEnd) {
+    options.where.createdAt = {
+      [Op.gte]: dateStart,
+    };
+  }
+
+  if (dateEnd && !dateStart) {
+    options.where.createdAt = {
+      [Op.lte]: dateEnd,
+    };
+  }
+
+  if (speciality) options.where.specialityId = speciality;
+
+  if (university) options.where.universityId = university;
 
   const listMedics = await models.Medic.findAll(options);
 

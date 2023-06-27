@@ -54,8 +54,8 @@ router.get(
   checkTokenBlack(),
   async (req, res, next) => {
     try {
-      const result = await checkMedicStatus();
-      res.status(201).json(result);
+      const result = await checkMedicStatus(req?.query, false);
+      res.status(200).json(result);
     } catch (err) {
       next(err);
     }
