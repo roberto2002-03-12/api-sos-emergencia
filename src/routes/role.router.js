@@ -46,7 +46,8 @@ router.post(
   checkTokenBlack(),
   async (req, res, next) => {
     try {
-      const result = await addRoleToUser(req.body);
+      const { sub } = req.user;
+      const result = await addRoleToUser(req.body, sub);
       res.status(201).json(result);
     } catch (err) {
       next(err);

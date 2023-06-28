@@ -2,9 +2,14 @@ const express = require('express');
 const passport = require('passport');
 const boom = require('@hapi/boom');
 const fileUpload = require('../middlewares/fileUpload.handler');
+const validateSchemaHandler = require('../middlewares/validator.handler');
 const validationRegisterHandler = require('../helpers/validationRegister');
-const { registerAsMedicSchema } = require('../schemas/medic.schema');
-const { createMedic, checkMedicStatus } = require('../services/medic.service');
+const {
+  registerAsMedicSchema, getPendingMedicsSchema, getMedicsQueriesSchema, getOneMedicSchema,
+} = require('../schemas/medic.schema');
+const {
+  createMedic, getListMedics, acceptMedic, selectMedic,
+} = require('../services/medic.service');
 const { checkRole } = require('../middlewares/auth.handler');
 const checkTokenBlack = require('../middlewares/token-valid.handler');
 
@@ -52,9 +57,59 @@ router.get(
   passport.authenticate('jwt', { session: false }),
   checkRole('admin'),
   checkTokenBlack(),
+  validateSchemaHandler(getPendingMedicsSchema, 'query'),
   async (req, res, next) => {
     try {
-      const result = await checkMedicStatus(req?.query, false);
+      const result = await getListMedics(req?.query, false);
+      res.status(200).json(result);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+router.get(
+  '/list-medics',
+  passport.authenticate('jwt', { session: false }),
+  checkRole('admin'),
+  checkTokenBlack(),
+  validateSchemaHandler(getMedicsQueriesSchema, 'query'),
+  async (req, res, next) => {
+    try {
+      const result = await getListMedics(req?.query, true);
+      res.status(200).json(result);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+router.patch(
+  '/accept-medic/:id',
+  passport.authenticate('jwt', { session: false }),
+  checkRole('admin'),
+  checkTokenBlack(),
+  validateSchemaHandler(getOneMedicSchema, 'params'),
+  async (req, res, next) => {
+    try {
+      const { sub } = req.user;
+      const result = await acceptMedic(req.params.id, sub);
+      res.status(200).json(result);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+router.get(
+  '/get-medic/:id',
+  passport.authenticate('jwt', { session: false }),
+  checkRole('admin'),
+  checkTokenBlack(),
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const result = await selectMedic(id);
       res.status(200).json(result);
     } catch (err) {
       next(err);

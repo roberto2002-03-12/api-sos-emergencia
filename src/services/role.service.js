@@ -30,8 +30,8 @@ const updateRole = async (id, obj) => {
   return 'role updated';
 };
 
-const addRoleToUser = async (body) => {
-  const userWhoAssigned = await getUserById(body.idWhoAssigned);
+const addRoleToUser = async (body, sub) => {
+  const userWhoAssigned = await getUserById(sub);
   // This method alredy has "not found" error, so you don't need to add it here.
   await getUserById(body.userId);
   await getRoleById(body.roleId);

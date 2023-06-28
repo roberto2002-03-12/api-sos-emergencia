@@ -145,6 +145,7 @@ const changePassword = async (token, newPassword) => {
 
 module.exports = {
   getUser,
+  sendMail,
   signToken,
   sendRecovery,
   changePassword,

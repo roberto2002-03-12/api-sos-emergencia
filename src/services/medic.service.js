@@ -5,9 +5,11 @@ const { Op } = require('sequelize');
 const { models } = require('../libs/sequelize');
 const sequelize = require('../libs/sequelize');
 const { getUserByEmail } = require('./user.service');
+const { sendMail } = require('./auth.service');
 const { deleteObjectsFromAWS } = require('../helpers/deleteAWSObjects');
+const { config } = require('../config/config');
 
-const checkMedicStatus = async (query, active) => {
+const getListMedics = async (query, active) => {
   const options = {
     include: [
       {
@@ -150,7 +152,79 @@ const createMedic = async (obj) => {
   }
 };
 
+const selectMedic = async (id) => {
+  const medic = await models.Medic.findByPk(id, {
+    include: [
+      {
+        model: models.Medic,
+        as: 'profile',
+        attributes: {
+          exclude: ['userId', 'user_id'],
+        },
+        include: [
+          {
+            model: models.User,
+            as: 'user',
+            attributes: {
+              exclude: ['password', 'recoveryToken', 'loggedToken'],
+            },
+          },
+        ],
+      },
+      'speciality',
+      'university',
+    ],
+  });
+
+  if (!medic) throw boom.notFound('Medic not found');
+
+  return medic;
+};
+
+const acceptMedic = async (id, sub) => {
+  const medic = await models.User.findByPk(id);
+
+  if (!medic) throw boom.notFound('Medic not found');
+
+  const role = await models.Role.findOne({
+    where: {
+      roleName: 'medic',
+    },
+  });
+
+  if (!role) throw boom.notFound('Role not found');
+
+  const userWhoAccepted = await models.User.findByPk(sub);
+
+  if (!userWhoAccepted) throw boom.notFound('User not found, how you did it?');
+
+  await models.UserRole.create({
+    userId: id,
+    roleId: role.dataValues.idRol,
+    assignedBy: userWhoAccepted.dataValues.email,
+  });
+
+  await medic.update({
+    activated: true,
+  });
+
+  const emailInfo = {
+    from: config.emailRecype,
+    to: `${medic.dataValues.email}`,
+    subject: 'Has sido aceptado para formar parte del equipo médico',
+    text: `Usted a sido aceptado para estar en la plataforma, hemos validado sus datos y son genuinos,
+    gracias por ser parte del equipo, podrá salvar y/o ayudar a varias personas,
+    ya puede iniciar sesión`,
+  };
+
+  await sendMail(emailInfo);
+
+  return 'Medic activated. An email and notification have send.';
+};
+
 module.exports = {
   createMedic,
-  checkMedicStatus,
+  getListMedics,
+  acceptMedic,
+  selectMedic,
 };
