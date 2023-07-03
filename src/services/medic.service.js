@@ -204,6 +204,19 @@ const acceptMedic = async (id, sub) => {
     assignedBy: userWhoAccepted.dataValues.email,
   });
 
+  const objMessage = {
+    title: 'Has sido aceptado para formar parte del equipo médico',
+    message: `Usted a sido aceptado para estar en la plataforma, hemos validado sus datos y son genuinos, gracias por ser parte del equipo, podrá salvar y/o ayudar a varias personas, ya puede iniciar sesión.
+    Gracias por formar parte de la plataforma.`,
+  };
+
+  await models.Notification.create({
+    ...objMessage,
+    userId: id,
+  });
+
+  // ToDo send notification to flutter app
+
   await medic.update({
     activated: true,
   });
@@ -211,14 +224,13 @@ const acceptMedic = async (id, sub) => {
   const emailInfo = {
     from: config.emailRecype,
     to: `${medic.dataValues.email}`,
-    subject: 'Has sido aceptado para formar parte del equipo médico',
-    text: `Usted a sido aceptado para estar en la plataforma, hemos validado sus datos y son genuinos, gracias por ser parte del equipo, podrá salvar y/o ayudar a varias personas, ya puede iniciar sesión.
-    Gracias por formar parte de la plataforma.`,
+    subject: objMessage.title,
+    text: objMessage.message,
   };
 
   await sendMail(emailInfo);
 
-  return 'Medic activated. An email and notification have send.';
+  return 'Medic activated. An email and notification have sent.';
 };
 
 module.exports = {

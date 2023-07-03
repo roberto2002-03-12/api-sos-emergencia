@@ -63,6 +63,8 @@ router.post(
       let objToJson = JSON.stringify(req.body);
       objToJson = JSON.parse(objToJson);
 
+      if (!req.file) delete objToJson.photo;
+
       const resultVal = validationRegisterHandler(registerSchema, objToJson);
 
       if (resultVal === true) {

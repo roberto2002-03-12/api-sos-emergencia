@@ -7,6 +7,7 @@ const { Medic, MedicSchema } = require('./medic.model');
 const { MedicUniversity, MedicUniversitySchema } = require('./medic_university.model');
 const { Speciality, SpecialitySchema } = require('./speciality.model');
 const { Certification, CertificationSchema } = require('./certification.model');
+const { Notification, NotificationSchema } = require('./notification.model');
 // const { Code, CodeSchema } = require('./code.model');
 
 function setUpModels(sequelize) {
@@ -20,6 +21,7 @@ function setUpModels(sequelize) {
   Medic.init(MedicSchema, Medic.config(sequelize));
   Certification.init(CertificationSchema, Certification.config(sequelize));
   // Code.init(CodeSchema, Code.config(sequelize));
+  Notification.init(NotificationSchema, Notification.config(sequelize));
 
   User.associate(sequelize.models);
   Role.associate(sequelize.models);
@@ -28,6 +30,7 @@ function setUpModels(sequelize) {
   MedicUniversity.associate(sequelize.models);
   Medic.associate(sequelize.models);
   Certification.associate(sequelize.models);
+  Notification.associate(sequelize.models);
 }
 
 module.exports = setUpModels;

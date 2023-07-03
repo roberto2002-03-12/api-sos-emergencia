@@ -34,6 +34,11 @@ router.post(
       let objToJson = JSON.stringify(req.body);
       objToJson = JSON.parse(objToJson);
 
+      if (!req.file) {
+        delete objToJson.photo;
+        delete objToJson.certification;
+      }
+
       const resultVal = validationRegisterHandler(registerAsMedicSchema, objToJson);
       if (resultVal === true) {
         objToJson.photoName = req.files.photo[0]?.key || 'empty';

@@ -60,6 +60,11 @@ class User extends Model {
       as: 'profile',
       foreignKey: 'user_id',
     });
+
+    this.hasMany(model.Notification, {
+      as: 'notification',
+      foreignKey: 'user_id',
+    });
   }
 
   static config(sequelize) {
