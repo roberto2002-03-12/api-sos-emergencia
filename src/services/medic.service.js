@@ -212,9 +212,8 @@ const acceptMedic = async (id, sub) => {
     from: config.emailRecype,
     to: `${medic.dataValues.email}`,
     subject: 'Has sido aceptado para formar parte del equipo médico',
-    text: `Usted a sido aceptado para estar en la plataforma, hemos validado sus datos y son genuinos,
-    gracias por ser parte del equipo, podrá salvar y/o ayudar a varias personas,
-    ya puede iniciar sesión`,
+    text: `Usted a sido aceptado para estar en la plataforma, hemos validado sus datos y son genuinos, gracias por ser parte del equipo, podrá salvar y/o ayudar a varias personas, ya puede iniciar sesión.
+    Gracias por formar parte de la plataforma.`,
   };
 
   await sendMail(emailInfo);
