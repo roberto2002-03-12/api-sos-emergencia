@@ -26,22 +26,26 @@ const getProfiles = async (query) => {
           exclude: ['password', 'recoveryToken', 'loggedToken'],
         },
         where: {},
+        include: ['role'],
       },
     ],
     where: {},
     limit: 20,
-    offset: 20,
+    offset: 0,
   };
 
   const {
     limit, offset, fullName,
-    startDate, endDate, sex, email,
+    startDate, endDate, sex, email, order,
   } = query || {};
 
   if (fullName) {
-    options.where = Sequelize.where(Sequelize.fn('concat', Sequelize.col('firstName'), ' ', Sequelize.col('lastName')), {
-      [Op.like]: `%${fullName}%`,
-    });
+    options.where = Sequelize.where(
+      Sequelize.fn('concat', Sequelize.col('first_name'), ' ', Sequelize.col('last_name')),
+      {
+        [Op.like]: `%${fullName}%`,
+      },
+    );
   }
 
   if (email) {
@@ -54,6 +58,19 @@ const getProfiles = async (query) => {
 
   if (sex) {
     options.where = Sequelize.and(options.where, { sex });
+  }
+
+  if (order) {
+    options.order = [
+      [
+        {
+          model: models.User,
+          as: 'user',
+        },
+        'created_at',
+        order === 'asc' ? 'ASC' : 'DESC',
+      ],
+    ];
   }
 
   if (startDate && endDate) {
@@ -95,7 +112,7 @@ const getProfiles = async (query) => {
 
   if (limit) options.limit = parseInt(limit, 10);
 
-  if (offset) options.offset = parseInt(limit, 10);
+  if (offset) options.offset = parseInt(offset, 10);
 
   const listProfiles = await models.Profile.findAll(options);
 

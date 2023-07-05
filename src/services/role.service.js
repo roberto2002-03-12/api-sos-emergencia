@@ -30,15 +30,23 @@ const updateRole = async (id, obj) => {
   return 'role updated';
 };
 
+const listOfRelations = async () => {
+  const userRoles = await models.UserRole.findAll();
+
+  return userRoles;
+};
+
 const addRoleToUser = async (body, sub) => {
   const userWhoAssigned = await getUserById(sub);
   // This method alredy has "not found" error, so you don't need to add it here.
-  await getUserById(body.userId);
-  await getRoleById(body.roleId);
+  const user = await getUserById(body.userId);
+  const role = await getRoleById(body.roleId);
 
   const roleAssigned = await models.UserRole.create({
     userId: body.userId,
+    userEmail: user.dataValues.email,
     roleId: body.roleId,
+    roleName: role.dataValues.roleName,
     assignedBy: userWhoAssigned.dataValues.email,
   });
 
@@ -60,4 +68,5 @@ module.exports = {
   updateRole,
   addRoleToUser,
   deleteRoleAssigned,
+  listOfRelations,
 };

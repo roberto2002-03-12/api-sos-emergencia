@@ -6,7 +6,8 @@ const limit = Joi.number().max(40);
 const offset = Joi.number().min(0);
 const startDate = Joi.string().max(24);
 const endDate = Joi.string().max(24);
-const email = Joi.string().email();
+const email = Joi.string();
+const order = Joi.string().valid('asc', 'desc');
 
 const firstName = Joi.string().max(65);
 const lastName = Joi.string().max(65);
@@ -15,7 +16,7 @@ const phoneNumber = Joi.string().max(15);
 const photoName = Joi.string();
 const photoUrl = Joi.string();
 const birthDate = Joi.date();
-const sex = Joi.string().max(15);
+const sex = Joi.string().max(15).valid('female', 'male');
 const address = Joi.string().max(85);
 
 const updateProfileSchema = Joi.object({
@@ -38,6 +39,7 @@ const listProfilesSchema = Joi.object({
   endDate: endDate.optional(),
   email: email.optional(),
   sex: sex.optional(),
+  order: order.optional(),
 });
 
 module.exports = {

@@ -10,7 +10,6 @@ const { updateProfileSchema, listProfilesSchema } = require('../schemas/profile.
 const {
   getProfiles, updateProfile,
 } = require('../services/profile.service');
-const { getName } = require('../helpers/getNameFromUrl');
 
 const router = express.Router();
 
@@ -22,7 +21,7 @@ router.get(
   checkTokenBlack(),
   async (req, res, next) => {
     try {
-      const result = await getProfiles();
+      const result = await getProfiles(req?.query);
       res.status(200).json(result);
     } catch (err) {
       next(err);
@@ -37,15 +36,17 @@ router.put(
   async (req, res, next) => {
     try {
       const { sub } = req.user;
-
       let objToJson = JSON.stringify(req.body);
+
       objToJson = JSON.parse(objToJson);
+
+      if (!req.file) delete objToJson.photo;
 
       const resultVal = validationUpdateHandler(updateProfileSchema, objToJson);
 
       if (resultVal === true) {
         const file = req.file?.location || 'empty';
-        const fileName = getName(file);
+        const fileName = req.file?.key || 'empty';
         objToJson.photoName = fileName;
         objToJson.photoUrl = file;
         const updateUser = await updateProfile(sub, objToJson);

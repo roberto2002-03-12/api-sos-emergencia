@@ -22,6 +22,11 @@ const UserRoleSchema = {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
   },
+  userEmail: {
+    field: 'user_email',
+    type: DataTypes.STRING(85),
+    allowNull: false,
+  },
   roleId: {
     field: 'role_id',
     type: DataTypes.UUID,
@@ -31,6 +36,11 @@ const UserRoleSchema = {
     },
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
+  },
+  roleName: {
+    field: 'role_name',
+    type: DataTypes.STRING(45),
+    allowNull: false,
   },
   assignedBy: {
     field: 'assigned_by',

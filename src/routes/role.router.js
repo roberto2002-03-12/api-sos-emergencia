@@ -6,6 +6,7 @@ const { checkRole } = require('../middlewares/auth.handler');
 const { addRoleToSomeOneSchema } = require('../schemas/role.schema');
 const {
   getRoles, createRole, addRoleToUser, deleteRoleAssigned,
+  listOfRelations,
 } = require('../services/role.service');
 
 const router = express.Router();
@@ -65,6 +66,21 @@ router.delete(
       const { id } = req.params;
       const result = await deleteRoleAssigned(id);
       res.status(201).json(result);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+router.get(
+  '/user-relations/',
+  passport.authenticate('jwt', { session: false }),
+  checkRole('admin'),
+  checkTokenBlack(),
+  async (req, res, next) => {
+    try {
+      const result = await listOfRelations();
+      res.status(200).json(result);
     } catch (err) {
       next(err);
     }
