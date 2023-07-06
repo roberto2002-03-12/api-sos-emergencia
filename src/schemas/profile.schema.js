@@ -4,8 +4,8 @@ const Joi = require('joi');
 const fullName = Joi.string().max(130);
 const limit = Joi.number().max(40);
 const offset = Joi.number().min(0);
-const startDate = Joi.string().max(24);
-const endDate = Joi.string().max(24);
+const startDate = Joi.date();
+const endDate = Joi.date();
 const email = Joi.string();
 const order = Joi.string().valid('asc', 'desc');
 

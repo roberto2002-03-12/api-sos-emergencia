@@ -1,4 +1,6 @@
 const boom = require('@hapi/boom');
+const { Sequelize } = require('sequelize');
+const { Op } = require('sequelize');
 const { models } = require('../libs/sequelize');
 const { getUserById } = require('./user.service');
 
@@ -30,8 +32,96 @@ const updateRole = async (id, obj) => {
   return 'role updated';
 };
 
-const listOfRelations = async () => {
-  const userRoles = await models.UserRole.findAll();
+const listOfRelations = async (query) => {
+  const options = {
+    where: {},
+    limit: 20,
+    offset: 0,
+  };
+
+  const {
+    roleName, userEmail, assignedBy, order,
+    limit, offset, dateStart, dateEnd,
+  } = query || {};
+
+  if (roleName) {
+    options.where = {
+      roleName,
+    };
+  }
+
+  if (userEmail) {
+    options.where = Sequelize.and(
+      options.where,
+      {
+        userEmail: {
+          [Op.like]: `%${userEmail}%`,
+        },
+      },
+    );
+  }
+
+  if (assignedBy) {
+    options.where = Sequelize.and(
+      options.where,
+      {
+        assignedBy: {
+          [Op.like]: `%${assignedBy}%`,
+        },
+      },
+    );
+  }
+
+  if (dateStart && dateEnd) {
+    const start = new Date(dateStart);
+    const end = new Date(dateEnd);
+    options.where = Sequelize.and(
+      options.where,
+      {
+        createdAt: {
+          [Op.between]: [start, end],
+        },
+      },
+    );
+  }
+
+  if (dateStart && !dateEnd) {
+    const start = new Date(dateStart);
+    options.where = Sequelize.and(
+      options.where,
+      {
+        createdAt: {
+          [Op.gte]: start,
+        },
+      },
+    );
+  }
+
+  if (dateEnd && !dateStart) {
+    const end = new Date(dateEnd);
+    options.where = Sequelize.and(
+      options.where,
+      {
+        createdAt: {
+          [Op.lte]: end,
+        },
+      },
+    );
+  }
+
+  if (order) {
+    options.order = [
+      [
+        'created_at',
+        order === 'asc' ? 'ASC' : 'DESC',
+      ],
+    ];
+  }
+
+  if (limit) options.limit = parseInt(limit, 10);
+  if (offset) options.offset = parseInt(offset, 10);
+
+  const userRoles = await models.UserRole.findAll(options);
 
   return userRoles;
 };
