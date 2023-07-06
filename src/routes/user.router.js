@@ -3,9 +3,7 @@ const passport = require('passport');
 const validationHandler = require('../middlewares/validator.handler');
 const { changePasswordSchema, changeStatusSchema } = require('../schemas/user.schema');
 const { checkRole } = require('../middlewares/auth.handler');
-const {
-  updateUser, deleteUser, changePassword, getUsers,
-} = require('../services/user.service');
+const { updateUser, deleteUser, changePassword } = require('../services/user.service');
 
 const router = express.Router();
 
@@ -50,18 +48,6 @@ router.delete(
       const { id } = req.params;
       const result = await deleteUser(id);
       res.status(201).json(result);
-    } catch (err) {
-      next(err);
-    }
-  },
-);
-
-router.get(
-  '/',
-  async (req, res, next) => {
-    try {
-      const result = await getUsers();
-      res.status(200).json(result);
     } catch (err) {
       next(err);
     }
